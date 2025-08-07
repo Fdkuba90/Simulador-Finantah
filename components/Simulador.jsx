@@ -83,7 +83,7 @@ export default function Simulador() {
       <img
         src="/finantah-logo.png"
         alt="Logo FINANTAH"
-        style={{ maxWidth: '120px', height: 'auto', marginBottom: '20px' }}
+        style={{ maxWidth: '200px', height: 'auto', marginBottom: '20px' }}
       />
       <h1>Simulador - FINANTAH</h1>
 
