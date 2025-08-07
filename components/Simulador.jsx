@@ -10,7 +10,7 @@ export default function Simulador() {
   const [calificacion, setCalificacion] = useState('');
   const [resultado, setResultado] = useState(null);
 
-  // Utilidades de formato
+  // Utilidades de formato para inputs
   const formatearMoneda = (valor) => {
     const num = valor.replace(/\D/g, '');
     return num ? parseInt(num).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }) : '';
@@ -18,7 +18,9 @@ export default function Simulador() {
 
   const formatearPorcentaje = (valor) => {
     const num = valor.replace(/[^\d.]/g, '');
-    return num ? `${num}%` : '';
+    if (!num) return '';
+    const parsed = parseFloat(num);
+    return isNaN(parsed) ? '' : `${parsed}%`;
   };
 
   const desformatearNumero = (valor) => parseFloat(valor.replace(/[^0-9.]/g, '')) || 0;
@@ -45,29 +47,37 @@ export default function Simulador() {
       return;
     }
 
-    if (comisionNum < 0.00 || comisionNum > 0.04) {
-      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 0% y 4%.' });
+    if (comisionNum < 0.01 || comisionNum > 0.04) {
+      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 1% y 4%.' });
       return;
     }
 
+    // Cálculos financieros
     const costoFondeo = montoNum * 0.1788; // 17.88% fijo
     const interes = montoNum * tasaNum;
     const margenFinanciero = interes - costoFondeo;
 
+    // Comisión sobre interés para promotor, según rol
     let porcentajeComisionInteres = 0;
     if (rol === 'Jr') porcentajeComisionInteres = 0.05;
     else if (rol === 'Sr') porcentajeComisionInteres = 0.08;
     else if (rol === 'Gerente') porcentajeComisionInteres = 0.10;
 
     const comisionInteres = margenFinanciero * porcentajeComisionInteres;
+
+    // Comisión por apertura (total y parte para FINANTAH)
     const comisionTotal = montoNum * comisionNum;
     const comisionFinantah = comisionTotal * porcentajeFinantahNum;
-    const comisionPromotor = comisionTotal - comisionFinantah;
+    // const comisionPromotor = comisionTotal - comisionFinantah; ← ya no se usa
 
-    const margenContribucion = margenFinanciero + comisionFinantah - comisionInteres - comisionPromotor;
+    // ✅ Margen de contribución solo considera utilidad neta para FINANTAH
+    const margenContribucion = margenFinanciero + comisionFinantah - comisionInteres;
+
+    // Riesgo crediticio y gastos operativos
     const utilidadSinRiesgo = margenContribucion - (piNum * 0.45 * montoNum);
     const utilidadFinal = utilidadSinRiesgo - (0.045 * montoNum); // 4.5% gastos operativos
 
+    // Rentabilidad mínima esperada según calificación
     let rentabilidadEsperada = 0.08;
     if (calificacion === 'B') rentabilidadEsperada = 0.09;
     else if (calificacion === 'C') rentabilidadEsperada = 0.10;
@@ -83,11 +93,11 @@ export default function Simulador() {
       <img
         src="/finantah-logo.png"
         alt="Logo FINANTAH"
-        style={{ maxWidth: '300px', height: 'auto', marginBottom: '20px' }}
+        style={{ maxWidth: '120px', height: 'auto', marginBottom: '20px' }}
       />
-      <h1>Simulador - FINANTAH</h1>
+      <h1>Simulador de Utilidad - FINANTAH</h1>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
         <input
           placeholder="Monto del crédito"
           value={monto}
@@ -126,7 +136,12 @@ export default function Simulador() {
           <option value="C">C</option>
           <option value="D">D</option>
         </select>
-        <button onClick={calcularUtilidad} style={{ padding: '10px', backgroundColor: '#0033cc', color: 'white', fontWeight: 'bold' }}>Simular</button>
+        <button
+          onClick={calcularUtilidad}
+          style={{ padding: '10px', backgroundColor: '#0033cc', color: 'white', fontWeight: 'bold' }}
+        >
+          Simular
+        </button>
       </div>
 
       {resultado && (
