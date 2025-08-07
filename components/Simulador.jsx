@@ -37,8 +37,8 @@ export default function Simulador() {
       return;
     }
 
-    if (porcentajeFinantahNum < 0.5) {
-      setResultado({ error: 'Escenario inválido: FINANTAH no puede quedarse con menos del 50% de la comisión por apertura.' });
+    if (porcentajeFinantahNum < 0.3) {
+      setResultado({ error: 'Escenario inválido: FINANTAH no puede quedarse con menos del 30% de la comisión por apertura.' });
       return;
     }
 
@@ -47,8 +47,8 @@ export default function Simulador() {
       return;
     }
 
-    if (comisionNum < 0.01 || comisionNum > 0.04) {
-      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 1% y 4%.' });
+    if (comisionNum < 0.00 || comisionNum > 0.06) {
+      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 0% y 6%.' });
       return;
     }
 
