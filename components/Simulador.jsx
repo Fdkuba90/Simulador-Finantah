@@ -1,92 +1,147 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function Simulador() {
-  const [monto, setMonto] = useState('');
-  const [tasa, setTasa] = useState('');
-  const [rol, setRol] = useState('');
-  const [comision, setComision] = useState('');
-  const [porcentajeFinantah, setPorcentajeFinantah] = useState('');
-  const [pi, setPI] = useState('');
-  const [calificacion, setCalificacion] = useState('');
-  const [resultado, setResultado] = useState(null);
+  const [form, setForm] = useState({
+    monto: '',
+    tasa: '',
+    rol: '',
+    comApertura: '',
+    comFinantah: '',
+    pi: '',
+    calificacion: ''
+  });
 
-  const calcularUtilidad = () => {
-    const montoNum = parseFloat(monto);
-    const tasaNum = parseFloat(tasa) / 100;
-    const comisionNum = parseFloat(comision) / 100;
-    const porcentajeFinantahNum = parseFloat(porcentajeFinantah) / 100;
-    const piNum = parseFloat(pi) / 100;
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const comisionTotal = montoNum * comisionNum;
-    const comisionFinantah = comisionTotal * porcentajeFinantahNum;
-    const comisionPromotor = comisionTotal - comisionFinantah;
+  const formatterMoney = new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2,
+  });
 
-    const interes = montoNum * tasaNum;
-    const costoFondeo = montoNum * 0.18; // 18% fijo
-    const margenFinanciero = interes - costoFondeo;
+  const formatterPercent = new Intl.NumberFormat('es-MX', {
+    style: 'percent',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
 
-    let comisionInteres = 0;
-    if (rol === 'Jr') comisionInteres = montoNum * 0.005;
-    else if (rol === 'Gerente') comisionInteres = montoNum * 0.01;
-    else if (rol === 'Socio') comisionInteres = montoNum * 0.015;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-    const margenContribucion = margenFinanciero + comisionFinantah - comisionInteres - comisionPromotor;
-    const utilidadSinRiesgo = margenContribucion - (piNum * 0.45 * montoNum);
-    const utilidadFinal = utilidadSinRiesgo - (0.045 * montoNum);
+    let cleanValue = value.replace(/[$,%\s]/g, ''); // quitar $ , % espacios
 
-    let rentabilidadEsperada = 0.08;
-    if (calificacion === 'B') rentabilidadEsperada = 0.09;
-    else if (calificacion === 'C') rentabilidadEsperada = 0.10;
-    else if (calificacion === 'D') rentabilidadEsperada = 0.11;
+    if (!/^\d*\.?\d*$/.test(cleanValue)) return; // evitar letras
 
-    const cumpleRentabilidad = utilidadFinal >= montoNum * rentabilidadEsperada;
-
-    setResultado({
-      utilidad: utilidadFinal,
-      cumple: cumpleRentabilidad,
-      rentabilidadEsperada,
+    setForm({
+      ...form,
+      [name]: cleanValue
     });
   };
 
-  return (
-    <div style={{ textAlign: 'center', fontFamily: 'Arial, sans-serif', padding: '20px' }}>
-      <img
-        src="/finantah-logo.png"
-        alt="Logo FINANTAH"
-        style={{ maxWidth: '200px', height: 'auto', marginBottom: '20px' }}
-      />
-      <h1 style={{ marginBottom: '30px' }}>Simulador de Utilidad - FINANTAH</h1>
+  const displayFormattedValue = (name) => {
+    const value = form[name];
+    if (value === '') return '';
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
-        <input placeholder="Monto del crédito" value={monto} onChange={(e) => setMonto(e.target.value)} />
-        <input placeholder="Tasa (%)" value={tasa} onChange={(e) => setTasa(e.target.value)} />
-        <select value={rol} onChange={(e) => setRol(e.target.value)}>
+    const num = parseFloat(value);
+
+    if (name === 'monto') return formatterMoney.format(num);
+    if (['tasa', 'comApertura', 'comFinantah', 'pi'].includes(name)) return `${num}%`;
+
+    return value;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setResult(null);
+
+    try {
+      const tasa = parseFloat(form.tasa);
+      const monto = parseFloat(form.monto);
+      const comApertura = parseFloat(form.comApertura);
+      const comFinantah = parseFloat(form.comFinantah);
+      const pi = parseFloat(form.pi);
+      const rol = form.rol;
+      const calificacion = form.calificacion;
+
+      if (tasa < 26 || tasa > 36) throw new Error('Tasa fuera del rango permitido (26% - 36%)');
+      if (comApertura < 1 || comApertura > 4) throw new Error('Comisión por apertura fuera del rango (1% - 4%)');
+      if (comFinantah < 50) throw new Error('FINANTAH debe quedarse al menos con el 50% de la comisión');
+
+      const costoFinanciero = 0.13;
+      const interes = monto * (tasa / 100);
+      const margenFinanciero = interes - (monto * costoFinanciero);
+      const comisionTotal = monto * (comApertura / 100);
+      const comisionFinantah = comisionTotal * (comFinantah / 100);
+      const comisionPromotor = comisionTotal - comisionFinantah;
+
+      const rolTasa = {
+        'Jr': 0.01,
+        'Gerente': 0.015,
+        'Director': 0.02
+      };
+
+      const comInteresPromotor = interes * rolTasa[rol];
+
+      const margenConComision = margenFinanciero + comisionFinantah;
+      const margenContribucion = margenConComision - comisionPromotor - comInteresPromotor;
+      const perdidaEsperada = (pi / 100) * 0.45 * monto;
+      const utilidadSinRiesgo = margenContribucion - perdidaEsperada;
+      const utilidad = utilidadSinRiesgo - (monto * 0.045);
+
+      const minUtilidades = { A: 0.08, B: 0.09, C: 0.10, D: 0.11 };
+      const cumple = utilidad >= (minUtilidades[calificacion] * monto);
+
+      setResult(`
+💰 UTILIDAD DEL CRÉDITO: 
+${formatterMoney.format(utilidad)}
+
+${cumple ? '✅ CUMPLE' : '❌ NO cumple'} con la rentabilidad mínima esperada (${(minUtilidades[calificacion] * 100).toFixed(2)}%)
+      `);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center mt-10 px-4">
+      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-40 mb-4" />
+      <h1 className="text-3xl font-bold mb-6 text-center">Simulador de Utilidad - FINANTAH</h1>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-sm">
+        <input type="text" name="monto" placeholder="Monto del crédito" value={displayFormattedValue('monto')} onChange={handleChange} required />
+        <input type="text" name="tasa" placeholder="Tasa (%)" value={displayFormattedValue('tasa')} onChange={handleChange} required />
+        <select name="rol" value={form.rol} onChange={handleChange} required>
           <option value="">Selecciona Rol</option>
           <option value="Jr">Jr</option>
           <option value="Gerente">Gerente</option>
-          <option value="Socio">Socio</option>
+          <option value="Director">Director</option>
         </select>
-        <input placeholder="Comisión de apertura (%)" value={comision} onChange={(e) => setComision(e.target.value)} />
-        <input placeholder="% comisión que se queda FINANTAH" value={porcentajeFinantah} onChange={(e) => setPorcentajeFinantah(e.target.value)} />
-        <input placeholder="P(i) (%)" value={pi} onChange={(e) => setPI(e.target.value)} />
-        <select value={calificacion} onChange={(e) => setCalificacion(e.target.value)}>
+        <input type="text" name="comApertura" placeholder="Comisión de apertura (%)" value={displayFormattedValue('comApertura')} onChange={handleChange} required />
+        <input type="text" name="comFinantah" placeholder="% comisión que se queda FINANTAH" value={displayFormattedValue('comFinantah')} onChange={handleChange} required />
+        <input type="text" name="pi" placeholder="P(i) (%)" value={displayFormattedValue('pi')} onChange={handleChange} required />
+        <select name="calificacion" value={form.calificacion} onChange={handleChange} required>
           <option value="">Calificación</option>
           <option value="A">A</option>
           <option value="B">B</option>
           <option value="C">C</option>
           <option value="D">D</option>
         </select>
-        <button onClick={calcularUtilidad} style={{ padding: '10px', backgroundColor: '#0033cc', color: 'white', fontWeight: 'bold' }}>Simular</button>
-      </div>
 
-      {resultado && (
-        <div style={{ marginTop: '30px', backgroundColor: '#f8f8f8', padding: '20px', borderRadius: '10px' }}>
-          <p style={{ fontWeight: 'bold' }}>📊 UTILIDAD DEL CRÉDITO:</p>
-          <p><strong>${resultado.utilidad.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong></p>
-          <p>
-            {resultado.cumple ? '✅' : '❌'} {resultado.cumple ? 'Cumple' : 'NO cumple'} con la rentabilidad mínima esperada (
-            {(resultado.rentabilidadEsperada * 100).toFixed(2)}%)
-          </p>
+        <button type="submit" className="bg-blue-700 text-white py-2 rounded" disabled={loading}>
+          {loading ? 'Calculando...' : 'Simular'}
+        </button>
+      </form>
+
+      {error && <p className="text-red-600 mt-4">{error}</p>}
+      {result && (
+        <div className="mt-6 bg-gray-100 p-4 rounded w-full max-w-sm">
+          <pre className="whitespace-pre-wrap text-sm">{result}</pre>
         </div>
       )}
     </div>
