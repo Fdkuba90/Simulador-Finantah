@@ -34,6 +34,14 @@ export default function Simulator() {
     return parseFloat(valor.toString().replace(/[$,%\s]/g, "").replace(",", ""));
   };
 
+  const formatInputValue = (valor, tipo) => {
+    const num = limpiarNumero(valor);
+    if (isNaN(num)) return "";
+    return tipo === "moneda"
+      ? formatterPeso.format(num)
+      : formatterPorcentaje.format(num / 100);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -84,31 +92,84 @@ export default function Simulator() {
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "40px 20px", textAlign: "center" }}>
+    <div style={{ maxWidth: "480px", margin: "0 auto", padding: "40px 20px", textAlign: "center" }}>
       <div style={{ marginBottom: "20px" }}>
-        <Image src="/logo-finantah.png" alt="FINANTAH Logo" width={120} height={120} />
+        <Image src="/logo-finantah.png" alt="FINANTAH Logo" width={90} height={90} />
       </div>
-      <h1 style={{ fontSize: "28px", fontWeight: "bold" }}>Simulador de Utilidad - FINANTAH</h1>
+      <h1 style={{ fontSize: "26px", fontWeight: "bold", marginBottom: "24px" }}>
+        Simulador de Utilidad - FINANTAH
+      </h1>
 
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "24px" }}>
-        <input placeholder="Monto del crédito" value={monto} onChange={(e) => setMonto(e.target.value)} />
-        <input placeholder="Tasa (%)" value={tasa} onChange={(e) => setTasa(e.target.value)} />
-        <select value={rol} onChange={(e) => setRol(e.target.value)}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          alignItems: "center",
+        }}
+      >
+        <input
+          placeholder="Monto del crédito"
+          value={monto}
+          onChange={(e) => setMonto(formatInputValue(e.target.value, "moneda"))}
+          style={{ width: "100%", padding: "10px" }}
+        />
+        <input
+          placeholder="Tasa (%)"
+          value={tasa}
+          onChange={(e) => setTasa(formatInputValue(e.target.value, "porcentaje"))}
+          style={{ width: "100%", padding: "10px" }}
+        />
+        <select
+          value={rol}
+          onChange={(e) => setRol(e.target.value)}
+          style={{ width: "100%", padding: "10px" }}
+        >
           <option value="">Selecciona Rol</option>
           <option value="Jr">Jr</option>
           <option value="Gerente">Gerente</option>
         </select>
-        <input placeholder="Comisión de apertura (%)" value={comision} onChange={(e) => setComision(e.target.value)} />
-        <input placeholder="% comisión que se queda FINANTAH" value={comisionFinantah} onChange={(e) => setComisionFinantah(e.target.value)} />
-        <input placeholder="P(i) (%)" value={pi} onChange={(e) => setPi(e.target.value)} />
-        <select value={calificacion} onChange={(e) => setCalificacion(e.target.value)}>
+        <input
+          placeholder="Comisión de apertura (%)"
+          value={comision}
+          onChange={(e) => setComision(formatInputValue(e.target.value, "porcentaje"))}
+          style={{ width: "100%", padding: "10px" }}
+        />
+        <input
+          placeholder="% comisión que se queda FINANTAH"
+          value={comisionFinantah}
+          onChange={(e) => setComisionFinantah(formatInputValue(e.target.value, "porcentaje"))}
+          style={{ width: "100%", padding: "10px" }}
+        />
+        <input
+          placeholder="P(i) (%)"
+          value={pi}
+          onChange={(e) => setPi(formatInputValue(e.target.value, "porcentaje"))}
+          style={{ width: "100%", padding: "10px" }}
+        />
+        <select
+          value={calificacion}
+          onChange={(e) => setCalificacion(e.target.value)}
+          style={{ width: "100%", padding: "10px" }}
+        >
           <option value="">Calificación</option>
           <option value="A">A</option>
           <option value="B">B</option>
           <option value="C">C</option>
           <option value="D">D</option>
         </select>
-        <button type="submit" style={{ background: "#1739B9", color: "white", padding: "10px", fontWeight: "bold", border: "none" }}>
+        <button
+          type="submit"
+          style={{
+            background: "#1739B9",
+            color: "white",
+            padding: "12px",
+            fontWeight: "bold",
+            border: "none",
+            width: "100%",
+          }}
+        >
           Simular
         </button>
       </form>
