@@ -1,14 +1,3 @@
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN',
-    minimumFractionDigits: 2,
-  }).format(value);
-};
-
-const formatPercentage = (value) => {
-  return `${parseFloat(value).toFixed(2)}%`;
-};
 import { useState } from 'react';
 
 export default function Simulador() {
