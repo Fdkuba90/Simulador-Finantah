@@ -75,9 +75,9 @@ export default function Simulador() {
     let rentabilidadEsperada = 0.08;
 
     if (garantia === 'Con Garantía') {
-      if (calificacion === 'A') rentabilidadEsperada = 0.065;
-      else if (calificacion === 'B') rentabilidadEsperada = 0.07;
-      else if (calificacion === 'C') rentabilidadEsperada = 0.075;
+      if (calificacion === 'A') rentabilidadEsperada = 0.05;
+      else if (calificacion === 'B') rentabilidadEsperada = 0.06;
+      else if (calificacion === 'C') rentabilidadEsperada = 0.07;
       else if (calificacion === 'D') rentabilidadEsperada = 0.08;
     } else {
       if (calificacion === 'A') rentabilidadEsperada = 0.08;
