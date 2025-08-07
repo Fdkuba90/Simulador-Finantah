@@ -22,13 +22,13 @@ export default function Simulador() {
     const comisionPromotor = comisionTotal - comisionFinantah;
 
     const interes = montoNum * tasaNum;
-    const costoFondeo = montoNum * 0.18; // 18% fijo
+    const costoFondeo = montoNum * 0.1788; // 17.88% fijo
     const margenFinanciero = interes - costoFondeo;
 
     let comisionInteres = 0;
-    if (rol === 'Jr') comisionInteres = montoNum * 0.005;
-    else if (rol === 'Gerente') comisionInteres = montoNum * 0.01;
-    else if (rol === 'Socio') comisionInteres = montoNum * 0.015;
+    if (rol === 'Jr') comisionInteres = montoNum * 0.05;
+    else if (rol === 'Sr') comisionInteres = montoNum * 0.08;
+    else if (rol === 'Gerente') comisionInteres = montoNum * 0.1;
 
     const margenContribucion = margenFinanciero + comisionFinantah - comisionInteres - comisionPromotor;
     const utilidadSinRiesgo = margenContribucion - (piNum * 0.45 * montoNum);
