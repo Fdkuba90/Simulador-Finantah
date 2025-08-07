@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function Simulador() {
+export default function Simulator() {
   const [form, setForm] = useState({
     monto: '',
     tasa: '',
@@ -68,35 +68,34 @@ export default function Simulador() {
       if (comApertura < 1 || comApertura > 4) throw new Error('Comisión por apertura fuera del rango (1% - 4%)');
       if (comFinantah < 50) throw new Error('FINANTAH debe quedarse al menos con el 50% de la comisión');
 
-      const costoFinanciero = 0.13;
+      const costoFondeo = 0.1788;
+      const gastosOperativos = 0.045;
       const interes = monto * (tasa / 100);
-      const margenFinanciero = interes - (monto * costoFinanciero);
+      const margenFinanciero = interes - (monto * costoFondeo);
       const comisionTotal = monto * (comApertura / 100);
       const comisionFinantah = comisionTotal * (comFinantah / 100);
       const comisionPromotor = comisionTotal - comisionFinantah;
 
       const rolTasa = {
-        'Jr': 0.01,
-        'Gerente': 0.015,
-        'Director': 0.02
+        'Jr': 0.05,
+        'Sr': 0.08,
+        'Gerente': 0.10
       };
 
-      const comInteresPromotor = interes * rolTasa[rol];
+      const comInteresPromotor = margenFinanciero * rolTasa[rol];
 
       const margenConComision = margenFinanciero + comisionFinantah;
       const margenContribucion = margenConComision - comisionPromotor - comInteresPromotor;
       const perdidaEsperada = (pi / 100) * 0.45 * monto;
       const utilidadSinRiesgo = margenContribucion - perdidaEsperada;
-      const utilidad = utilidadSinRiesgo - (monto * 0.045);
+      const utilidad = utilidadSinRiesgo - (monto * gastosOperativos);
 
       const minUtilidades = { A: 0.08, B: 0.09, C: 0.10, D: 0.11 };
       const cumple = utilidad >= (minUtilidades[calificacion] * monto);
 
       setResult(`
-📊 UTILIDAD DEL CRÉDITO: 
-${formatterMoney.format(utilidad)}
-
-${cumple ? '✅ Cumple' : '❌ No cumple'} con la rentabilidad mínima esperada (${formatterPercent.format(minUtilidades[calificacion])})
+📊 UTILIDAD DEL CRÉDITO: \n${formatterMoney.format(utilidad)}
+\n${cumple ? '✅ Cumple' : '❌ No cumple'} con la rentabilidad mínima esperada (${formatterPercent.format(minUtilidades[calificacion])})
       `);
     } catch (err) {
       setError(err.message);
@@ -107,21 +106,21 @@ ${cumple ? '✅ Cumple' : '❌ No cumple'} con la rentabilidad mínima esperada 
 
   return (
     <div className="flex flex-col items-center mt-10 px-4">
-      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-28 mb-4" />
+      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-32 mb-4" />
       <h1 className="text-3xl font-bold mb-6 text-center">Simulador de Utilidad - FINANTAH</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-sm">
         <input name="monto" value={formatInputValue('monto', form.monto)} onChange={handleChange} placeholder="Monto del crédito" required />
-        <input name="tasa" value={formatInputValue('tasa', form.tasa)} onChange={handleChange} placeholder="Tasa (%)" required />
+        <input name="tasa" value={formatInputValue('tasa', form.tasa)} onChange={handleChange} placeholder="Tasa anual (%)" required />
         <select name="rol" value={form.rol} onChange={handleChange} required>
-          <option value="">Selecciona Rol</option>
+          <option value="">Tipo de promotor</option>
           <option value="Jr">Jr</option>
+          <option value="Sr">Sr</option>
           <option value="Gerente">Gerente</option>
-          <option value="Director">Director</option>
         </select>
-        <input name="comApertura" value={formatInputValue('comApertura', form.comApertura)} onChange={handleChange} placeholder="Comisión de apertura (%)" required />
-        <input name="comFinantah" value={formatInputValue('comFinantah', form.comFinantah)} onChange={handleChange} placeholder="% comisión que se queda FINANTAH" required />
-        <input name="pi" value={formatInputValue('pi', form.pi)} onChange={handleChange} placeholder="P(i) (%)" required />
+        <input name="comApertura" value={formatInputValue('comApertura', form.comApertura)} onChange={handleChange} placeholder="Comisión por apertura (%)" required />
+        <input name="comFinantah" value={formatInputValue('comFinantah', form.comFinantah)} onChange={handleChange} placeholder="% que se queda FINANTAH" required />
+        <input name="pi" value={formatInputValue('pi', form.pi)} onChange={handleChange} placeholder="Probabilidad de Incumplimiento (P(i))" required />
         <select name="calificacion" value={form.calificacion} onChange={handleChange} required>
           <option value="">Calificación</option>
           <option value="A">A</option>
