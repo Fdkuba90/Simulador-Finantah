@@ -1,3 +1,7 @@
+
+jsx
+Copiar
+Editar
 import React, { useState } from 'react';
 
 export default function Simulador() {
@@ -10,12 +14,25 @@ export default function Simulador() {
   const [calificacion, setCalificacion] = useState('');
   const [resultado, setResultado] = useState(null);
 
+  // Utilidades de formato
+  const formatearMoneda = (valor) => {
+    const num = valor.replace(/\D/g, '');
+    return num ? parseInt(num).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }) : '';
+  };
+
+  const formatearPorcentaje = (valor) => {
+    const num = valor.replace(/[^\d.]/g, '');
+    return num ? `${num}%` : '';
+  };
+
+  const desformatearNumero = (valor) => parseFloat(valor.replace(/[^0-9.]/g, '')) || 0;
+
   const calcularUtilidad = () => {
-    const montoNum = parseFloat(monto);
-    const tasaNum = parseFloat(tasa) / 100;
-    const comisionNum = parseFloat(comision) / 100;
-    const porcentajeFinantahNum = parseFloat(porcentajeFinantah) / 100;
-    const piNum = parseFloat(pi) / 100;
+    const montoNum = desformatearNumero(monto);
+    const tasaNum = desformatearNumero(tasa) / 100;
+    const comisionNum = desformatearNumero(comision) / 100;
+    const porcentajeFinantahNum = desformatearNumero(porcentajeFinantah) / 100;
+    const piNum = desformatearNumero(pi) / 100;
 
     if (isNaN(montoNum) || isNaN(tasaNum) || isNaN(comisionNum) || isNaN(porcentajeFinantahNum) || isNaN(piNum)) {
       setResultado({ error: 'Por favor completa todos los campos correctamente.' });
@@ -41,7 +58,6 @@ export default function Simulador() {
     const interes = montoNum * tasaNum;
     const margenFinanciero = interes - costoFondeo;
 
-    // Comisión por interés sobre margen financiero
     let porcentajeComisionInteres = 0;
     if (rol === 'Jr') porcentajeComisionInteres = 0.05;
     else if (rol === 'Sr') porcentajeComisionInteres = 0.08;
@@ -76,17 +92,37 @@ export default function Simulador() {
       <h1>Simulador de Utilidad - FINANTAH</h1>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
-        <input placeholder="Monto del crédito" value={monto} onChange={(e) => setMonto(e.target.value)} />
-        <input placeholder="Tasa (%)" value={tasa} onChange={(e) => setTasa(e.target.value)} />
+        <input
+          placeholder="Monto del crédito"
+          value={monto}
+          onChange={(e) => setMonto(formatearMoneda(e.target.value))}
+        />
+        <input
+          placeholder="Tasa (%)"
+          value={tasa}
+          onChange={(e) => setTasa(formatearPorcentaje(e.target.value))}
+        />
         <select value={rol} onChange={(e) => setRol(e.target.value)}>
           <option value="">Selecciona Rol</option>
           <option value="Jr">Jr</option>
           <option value="Sr">Sr</option>
           <option value="Gerente">Gerente</option>
         </select>
-        <input placeholder="Comisión apertura (%)" value={comision} onChange={(e) => setComision(e.target.value)} />
-        <input placeholder="% comisión que se queda FINANTAH" value={porcentajeFinantah} onChange={(e) => setPorcentajeFinantah(e.target.value)} />
-        <input placeholder="P(i) (%)" value={pi} onChange={(e) => setPI(e.target.value)} />
+        <input
+          placeholder="Comisión apertura (%)"
+          value={comision}
+          onChange={(e) => setComision(formatearPorcentaje(e.target.value))}
+        />
+        <input
+          placeholder="% comisión que se queda FINANTAH"
+          value={porcentajeFinantah}
+          onChange={(e) => setPorcentajeFinantah(formatearPorcentaje(e.target.value))}
+        />
+        <input
+          placeholder="P(i) (%)"
+          value={pi}
+          onChange={(e) => setPI(formatearPorcentaje(e.target.value))}
+        />
         <select value={calificacion} onChange={(e) => setCalificacion(e.target.value)}>
           <option value="">Calificación</option>
           <option value="A">A</option>
