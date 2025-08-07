@@ -24,32 +24,29 @@ export default function Simulador() {
   const formatterPercent = new Intl.NumberFormat('es-MX', {
     style: 'percent',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   });
+
+  const formatInputValue = (name, value) => {
+    const num = parseFloat(value.replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) return '';
+    if (name === 'monto') return formatterMoney.format(num);
+    if (['tasa', 'comApertura', 'comFinantah', 'pi'].includes(name)) return `${num}%`;
+    return value;
+  };
+
+  const parseRawValue = (value) => {
+    return value.replace(/[$,%\s]/g, '');
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    let cleanValue = value.replace(/[$,%\s]/g, ''); // quitar $ , % espacios
-
-    if (!/^\d*\.?\d*$/.test(cleanValue)) return; // evitar letras
-
+    const rawValue = parseRawValue(value);
+    if (!/^\d*\.?\d*$/.test(rawValue)) return;
     setForm({
       ...form,
-      [name]: cleanValue
+      [name]: rawValue,
     });
-  };
-
-  const displayFormattedValue = (name) => {
-    const value = form[name];
-    if (value === '') return '';
-
-    const num = parseFloat(value);
-
-    if (name === 'monto') return formatterMoney.format(num);
-    if (['tasa', 'comApertura', 'comFinantah', 'pi'].includes(name)) return `${num}%`;
-
-    return value;
   };
 
   const handleSubmit = async (e) => {
@@ -96,10 +93,10 @@ export default function Simulador() {
       const cumple = utilidad >= (minUtilidades[calificacion] * monto);
 
       setResult(`
-💰 UTILIDAD DEL CRÉDITO: 
+📊 UTILIDAD DEL CRÉDITO: 
 ${formatterMoney.format(utilidad)}
 
-${cumple ? '✅ CUMPLE' : '❌ NO cumple'} con la rentabilidad mínima esperada (${(minUtilidades[calificacion] * 100).toFixed(2)}%)
+${cumple ? '✅ Cumple' : '❌ No cumple'} con la rentabilidad mínima esperada (${formatterPercent.format(minUtilidades[calificacion])})
       `);
     } catch (err) {
       setError(err.message);
@@ -110,21 +107,21 @@ ${cumple ? '✅ CUMPLE' : '❌ NO cumple'} con la rentabilidad mínima esperada 
 
   return (
     <div className="flex flex-col items-center mt-10 px-4">
-      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-40 mb-4" />
+      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-28 mb-4" />
       <h1 className="text-3xl font-bold mb-6 text-center">Simulador de Utilidad - FINANTAH</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-sm">
-        <input type="text" name="monto" placeholder="Monto del crédito" value={displayFormattedValue('monto')} onChange={handleChange} required />
-        <input type="text" name="tasa" placeholder="Tasa (%)" value={displayFormattedValue('tasa')} onChange={handleChange} required />
+        <input name="monto" value={formatInputValue('monto', form.monto)} onChange={handleChange} placeholder="Monto del crédito" required />
+        <input name="tasa" value={formatInputValue('tasa', form.tasa)} onChange={handleChange} placeholder="Tasa (%)" required />
         <select name="rol" value={form.rol} onChange={handleChange} required>
           <option value="">Selecciona Rol</option>
           <option value="Jr">Jr</option>
           <option value="Gerente">Gerente</option>
           <option value="Director">Director</option>
         </select>
-        <input type="text" name="comApertura" placeholder="Comisión de apertura (%)" value={displayFormattedValue('comApertura')} onChange={handleChange} required />
-        <input type="text" name="comFinantah" placeholder="% comisión que se queda FINANTAH" value={displayFormattedValue('comFinantah')} onChange={handleChange} required />
-        <input type="text" name="pi" placeholder="P(i) (%)" value={displayFormattedValue('pi')} onChange={handleChange} required />
+        <input name="comApertura" value={formatInputValue('comApertura', form.comApertura)} onChange={handleChange} placeholder="Comisión de apertura (%)" required />
+        <input name="comFinantah" value={formatInputValue('comFinantah', form.comFinantah)} onChange={handleChange} placeholder="% comisión que se queda FINANTAH" required />
+        <input name="pi" value={formatInputValue('pi', form.pi)} onChange={handleChange} placeholder="P(i) (%)" required />
         <select name="calificacion" value={form.calificacion} onChange={handleChange} required>
           <option value="">Calificación</option>
           <option value="A">A</option>
