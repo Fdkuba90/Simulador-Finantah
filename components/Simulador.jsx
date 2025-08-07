@@ -85,9 +85,9 @@ export default function Simulador() {
         alt="Logo FINANTAH"
         style={{ maxWidth: '120px', height: 'auto', marginBottom: '20px' }}
       />
-      <h1>Simulador de Utilidad - FINANTAH</h1>
+      <h1>Simulador - FINANTAH</h1>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '200px', margin: '0 auto' }}>
         <input
           placeholder="Monto del crédito"
           value={monto}
