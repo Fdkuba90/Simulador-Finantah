@@ -98,7 +98,7 @@ export default function Simulator() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white">
-      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-28 mb-6" />
+      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-13 mb-3" />
       <h1 className="text-3xl font-bold text-center mb-6">Simulador de Utilidad - FINANTAH</h1>
       <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
         <input type="number" name="monto" placeholder="Monto del crédito" className="w-full p-2 border" onChange={handleChange} required />
