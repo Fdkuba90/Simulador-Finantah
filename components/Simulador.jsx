@@ -17,22 +17,44 @@ export default function Simulador() {
     const porcentajeFinantahNum = parseFloat(porcentajeFinantah) / 100;
     const piNum = parseFloat(pi) / 100;
 
+    if (isNaN(montoNum) || isNaN(tasaNum) || isNaN(comisionNum) || isNaN(porcentajeFinantahNum) || isNaN(piNum)) {
+      setResultado({ error: 'Por favor completa todos los campos correctamente.' });
+      return;
+    }
+
+    if (porcentajeFinantahNum < 0.5) {
+      setResultado({ error: 'Escenario inválido: FINANTAH no puede quedarse con menos del 50% de la comisión por apertura.' });
+      return;
+    }
+
+    if (tasaNum < 0.26 || tasaNum > 0.36) {
+      setResultado({ error: 'Escenario inválido: la tasa ofrecida está fuera del rango permitido (26% - 36%).' });
+      return;
+    }
+
+    if (comisionNum < 0.01 || comisionNum > 0.04) {
+      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 1% y 4%.' });
+      return;
+    }
+
+    const costoFondeo = montoNum * 0.1788; // 17.88% fijo
+    const interes = montoNum * tasaNum;
+    const margenFinanciero = interes - costoFondeo;
+
+    // Comisión por interés sobre margen financiero
+    let porcentajeComisionInteres = 0;
+    if (rol === 'Jr') porcentajeComisionInteres = 0.05;
+    else if (rol === 'Sr') porcentajeComisionInteres = 0.08;
+    else if (rol === 'Gerente') porcentajeComisionInteres = 0.10;
+
+    const comisionInteres = margenFinanciero * porcentajeComisionInteres;
     const comisionTotal = montoNum * comisionNum;
     const comisionFinantah = comisionTotal * porcentajeFinantahNum;
     const comisionPromotor = comisionTotal - comisionFinantah;
 
-    const interes = montoNum * tasaNum;
-    const costoFondeo = montoNum * 0.1788; // 17.88% fijo
-    const margenFinanciero = interes - costoFondeo;
-
-    let comisionInteres = 0;
-    if (rol === 'Jr') comisionInteres = montoNum * 0.05;
-    else if (rol === 'Sr') comisionInteres = montoNum * 0.08;
-    else if (rol === 'Gerente') comisionInteres = montoNum * 0.1;
-
     const margenContribucion = margenFinanciero + comisionFinantah - comisionInteres - comisionPromotor;
     const utilidadSinRiesgo = margenContribucion - (piNum * 0.45 * montoNum);
-    const utilidadFinal = utilidadSinRiesgo - (0.045 * montoNum);
+    const utilidadFinal = utilidadSinRiesgo - (0.045 * montoNum); // 4.5% gastos operativos
 
     let rentabilidadEsperada = 0.08;
     if (calificacion === 'B') rentabilidadEsperada = 0.09;
@@ -41,11 +63,7 @@ export default function Simulador() {
 
     const cumpleRentabilidad = utilidadFinal >= montoNum * rentabilidadEsperada;
 
-    setResultado({
-      utilidad: utilidadFinal,
-      cumple: cumpleRentabilidad,
-      rentabilidadEsperada,
-    });
+    setResultado({ utilidad: utilidadFinal, cumple: cumpleRentabilidad, rentabilidadEsperada });
   };
 
   return (
@@ -53,9 +71,9 @@ export default function Simulador() {
       <img
         src="/finantah-logo.png"
         alt="Logo FINANTAH"
-        style={{ maxWidth: '200px', height: 'auto', marginBottom: '20px' }}
+        style={{ maxWidth: '120px', height: 'auto', marginBottom: '20px' }}
       />
-      <h1 style={{ marginBottom: '30px' }}>Simulador de Utilidad - FINANTAH</h1>
+      <h1>Simulador de Utilidad - FINANTAH</h1>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
         <input placeholder="Monto del crédito" value={monto} onChange={(e) => setMonto(e.target.value)} />
@@ -63,10 +81,10 @@ export default function Simulador() {
         <select value={rol} onChange={(e) => setRol(e.target.value)}>
           <option value="">Selecciona Rol</option>
           <option value="Jr">Jr</option>
+          <option value="Sr">Sr</option>
           <option value="Gerente">Gerente</option>
-          <option value="Socio">Socio</option>
         </select>
-        <input placeholder="Comisión de apertura (%)" value={comision} onChange={(e) => setComision(e.target.value)} />
+        <input placeholder="Comisión apertura (%)" value={comision} onChange={(e) => setComision(e.target.value)} />
         <input placeholder="% comisión que se queda FINANTAH" value={porcentajeFinantah} onChange={(e) => setPorcentajeFinantah(e.target.value)} />
         <input placeholder="P(i) (%)" value={pi} onChange={(e) => setPI(e.target.value)} />
         <select value={calificacion} onChange={(e) => setCalificacion(e.target.value)}>
@@ -80,13 +98,18 @@ export default function Simulador() {
       </div>
 
       {resultado && (
-        <div style={{ marginTop: '30px', backgroundColor: '#f8f8f8', padding: '20px', borderRadius: '10px' }}>
-          <p style={{ fontWeight: 'bold' }}>📊 UTILIDAD DEL CRÉDITO:</p>
-          <p><strong>${resultado.utilidad.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong></p>
-          <p>
-            {resultado.cumple ? '✅' : '❌'} {resultado.cumple ? 'Cumple' : 'NO cumple'} con la rentabilidad mínima esperada (
-            {(resultado.rentabilidadEsperada * 100).toFixed(2)}%)
-          </p>
+        <div style={{ marginTop: '30px', backgroundColor: '#f4f4f4', padding: '20px', borderRadius: '10px' }}>
+          {resultado.error ? (
+            <p style={{ color: 'red', fontWeight: 'bold' }}>⚠️ {resultado.error}</p>
+          ) : (
+            <>
+              <p style={{ fontWeight: 'bold' }}>📊 Utilidad del crédito:</p>
+              <p><strong>${resultado.utilidad.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</strong></p>
+              <p>
+                {resultado.cumple ? '✅' : '❌'} {resultado.cumple ? 'Cumple' : 'NO cumple'} con la rentabilidad mínima esperada ({(resultado.rentabilidadEsperada * 100).toFixed(2)}%)
+              </p>
+            </>
+          )}
         </div>
       )}
     </div>
