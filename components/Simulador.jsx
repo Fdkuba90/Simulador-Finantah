@@ -40,7 +40,7 @@ export default function Simulador() {
       return;
     }
 
-    if (porcentajeFinantahNum < 0.5) {
+    if (porcentajeFinantahNum < 0.3) {
       setResultado({ error: 'Escenario inválido: FINANTAH no puede quedarse con menos del 50% de la comisión por apertura.' });
       return;
     }
@@ -50,8 +50,8 @@ export default function Simulador() {
       return;
     }
 
-    if (comisionNum < 0.01 || comisionNum > 0.04) {
-      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 1% y 4%.' });
+    if (comisionNum < 0.00 || comisionNum > 0.06) {
+      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 0% y 6%.' });
       return;
     }
 
@@ -96,11 +96,11 @@ export default function Simulador() {
       <img
         src="/finantah-logo.png"
         alt="Logo FINANTAH"
-        style={{ maxWidth: '120px', height: 'auto', marginBottom: '20px' }}
+        style={{ maxWidth: '350px', height: 'auto', marginBottom: '20px' }}
       />
-      <h1>Simulador de Utilidad - FINANTAH</h1>
+      <h1>Simulador - FINANTAH</h1>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '150px', margin: '0 auto' }}>
         <input
           placeholder="Monto del crédito"
           value={monto}
