@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 
 export default function Simulador() {
+  const [rol, setRol] = useState('');
+  const [garantia, setGarantia] = useState('');
+  const [calificacion, setCalificacion] = useState('');
   const [monto, setMonto] = useState('');
   const [tasa, setTasa] = useState('');
-  const [rol, setRol] = useState('');
   const [comision, setComision] = useState('');
   const [porcentajeFinantah, setPorcentajeFinantah] = useState('');
   const [pi, setPI] = useState('');
-  const [calificacion, setCalificacion] = useState('');
-  const [garantia, setGarantia] = useState('');
   const [resultado, setResultado] = useState(null);
 
   const formatearMoneda = (valor) => {
