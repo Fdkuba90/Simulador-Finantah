@@ -1,3 +1,32 @@
+// pages/index.js
+import Head from 'next/head';
+import Simulator from '../components/Simulator';
+
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-start p-4">
+      <Head>
+        <title>Simulador de Utilidad - FINANTAH</title>
+      </Head>
+
+      {/* Logo más pequeño y proporcional */}
+      <img
+        src="/finantah-logo.png"
+        alt="Logo FINANTAH"
+        style={{ width: '160px', height: 'auto', marginTop: '20px' }}
+      />
+
+      <h1 className="text-3xl font-bold text-center mb-8 mt-4">
+        Simulador de Utilidad - FINANTAH
+      </h1>
+
+      <Simulator />
+    </div>
+  );
+}
+
+
+// components/Simulator.jsx
 import { useState } from 'react';
 
 export default function Simulator() {
@@ -64,16 +93,16 @@ export default function Simulator() {
     const rentabilidadMinima = tasasMinimas[calificacion] || 0.1;
 
     const interesCredito = monto * (tasa / 100);
-    const costoFinanciero = monto * 0.18;
+    const costoFinanciero = monto * 0.1788;
     const margenFinanciero = interesCredito - costoFinanciero;
 
     const comisionMonto = monto * (comisionTotal / 100);
     const comisionFinantahMonto = comisionMonto * (comisionFinantah / 100);
 
-    const comisionPromotorInteres = promotor === 'Jr' ? 0.01 : promotor === 'Sr' ? 0.012 : 0.015;
-    const comisionPromotorApertura = promotor === 'Jr' ? 0.005 : promotor === 'Sr' ? 0.007 : 0.01;
+    const comisionPromotorInteres = promotor === 'Jr' ? 0.05 : promotor === 'Sr' ? 0.08 : 0.10;
+    const comisionPromotorApertura = 1 - comisionFinantah / 100;
 
-    const comisionPromotorInteresMonto = interesCredito * comisionPromotorInteres;
+    const comisionPromotorInteresMonto = margenFinanciero * comisionPromotorInteres;
     const comisionPromotorAperturaMonto = comisionMonto * comisionPromotorApertura;
 
     const margenConComision = margenFinanciero + comisionFinantahMonto;
@@ -97,21 +126,19 @@ export default function Simulator() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white">
-      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-13 mb-3" />
-      <h1 className="text-3xl font-bold text-center mb-6">Simulador de Utilidad - FINANTAH</h1>
+    <div className="flex flex-col items-center justify-center p-4 bg-white">
       <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
-        <input type="number" name="monto" placeholder="Monto del crédito" className="w-full p-2 border" onChange={handleChange} required />
-        <input type="number" name="tasa" placeholder="Tasa (%)" className="w-full p-2 border" onChange={handleChange} required />
-        <select name="promotor" className="w-full p-2 border" onChange={handleChange}>
+        <input type="number" name="monto" placeholder="Monto del crédito" className="w-full p-2 border rounded" onChange={handleChange} required />
+        <input type="number" name="tasa" placeholder="Tasa (%)" className="w-full p-2 border rounded" onChange={handleChange} required />
+        <select name="promotor" className="w-full p-2 border rounded" onChange={handleChange}>
           <option value="Jr">Jr</option>
           <option value="Sr">Sr</option>
           <option value="Gerente">Gerente</option>
         </select>
-        <input type="number" name="comisionTotal" placeholder="Comisión de apertura (%)" className="w-full p-2 border" onChange={handleChange} required />
-        <input type="number" name="comisionFinantah" placeholder="% comisión que se queda FINANTAH" className="w-full p-2 border" onChange={handleChange} required />
-        <input type="number" name="pi" placeholder="P(i) (%)" className="w-full p-2 border" onChange={handleChange} required />
-        <select name="calificacion" className="w-full p-2 border" onChange={handleChange}>
+        <input type="number" name="comisionTotal" placeholder="Comisión de apertura (%)" className="w-full p-2 border rounded" onChange={handleChange} required />
+        <input type="number" name="comisionFinantah" placeholder="% comisión que se queda FINANTAH" className="w-full p-2 border rounded" onChange={handleChange} required />
+        <input type="number" name="pi" placeholder="P(i) (%)" className="w-full p-2 border rounded" onChange={handleChange} required />
+        <select name="calificacion" className="w-full p-2 border rounded" onChange={handleChange}>
           <option value="A">A</option>
           <option value="B">B</option>
           <option value="C">C</option>
