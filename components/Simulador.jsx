@@ -45,8 +45,8 @@ export default function Simulador() {
       return;
     }
 
-    if (comisionNum < 0.01 || comisionNum > 0.04) {
-      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 1% y 4%.' });
+    if (comisionNum < 0.00 || comisionNum > 0.04) {
+      setResultado({ error: 'Escenario inválido: la comisión por apertura debe estar entre 0% y 4%.' });
       return;
     }
 
