@@ -100,43 +100,20 @@ export default function Simulador() {
       />
       <h1>Simulador - FINANTAH</h1>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '250px', margin: '0 auto' }}>
-        <input
-          placeholder="Monto del crédito"
-          value={monto}
-          onChange={(e) => setMonto(formatearMoneda(e.target.value))}
-        />
-        <input
-          placeholder="Tasa (%)"
-          value={tasa}
-          onChange={(e) => setTasa(formatearPorcentaje(e.target.value))}
-        />
+     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
         <select value={rol} onChange={(e) => setRol(e.target.value)}>
           <option value="">Selecciona Rol</option>
           <option value="Jr">Jr</option>
           <option value="Sr">Sr</option>
           <option value="Gerente">Gerente</option>
         </select>
-        <input
-          placeholder="Comisión apertura (%)"
-          value={comision}
-          onChange={(e) => setComision(formatearPorcentaje(e.target.value))}
-        />
-        <input
-          placeholder="% comisión que se queda FINANTAH"
-          value={porcentajeFinantah}
-          onChange={(e) => setPorcentajeFinantah(formatearPorcentaje(e.target.value))}
-        />
-        <input
-          placeholder="P(i) (%)"
-          value={pi}
-          onChange={(e) => setPI(formatearPorcentaje(e.target.value))}
-        />
+
         <select value={garantia} onChange={(e) => setGarantia(e.target.value)}>
           <option value="">Garantía</option>
           <option value="Sin Garantía">Sin Garantía</option>
           <option value="Con Garantía">Con Garantía</option>
         </select>
+
         <select value={calificacion} onChange={(e) => setCalificacion(e.target.value)}>
           <option value="">Calificación</option>
           <option value="A">A</option>
@@ -144,6 +121,37 @@ export default function Simulador() {
           <option value="C">C</option>
           <option value="D">D</option>
         </select>
+
+        <input
+          placeholder="Monto del crédito"
+          value={monto}
+          onChange={(e) => setMonto(formatearMoneda(e.target.value))}
+        />
+
+        <input
+          placeholder="Tasa (%)"
+          value={tasa}
+          onChange={(e) => setTasa(formatearPorcentaje(e.target.value))}
+        />
+
+        <input
+          placeholder="Comisión apertura (%)"
+          value={comision}
+          onChange={(e) => setComision(formatearPorcentaje(e.target.value))}
+        />
+
+        <input
+          placeholder="% comisión que se queda FINANTAH"
+          value={porcentajeFinantah}
+          onChange={(e) => setPorcentajeFinantah(formatearPorcentaje(e.target.value))}
+        />
+
+        <input
+          placeholder="P(i) (%)"
+          value={pi}
+          onChange={(e) => setPI(formatearPorcentaje(e.target.value))}
+        />
+
         <button
           onClick={calcularUtilidad}
           style={{ padding: '10px', backgroundColor: '#0033cc', color: 'white', fontWeight: 'bold' }}
