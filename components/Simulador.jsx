@@ -1,143 +1,123 @@
-import { useState } from 'react';
+import { useState } from "react";
+import Image from "next/image";
 
 export default function Simulator() {
-  const [form, setForm] = useState({
-    monto: '',
-    tasa: '',
-    rol: '',
-    comApertura: '',
-    comFinantah: '',
-    pi: '',
-    calificacion: ''
+  const [monto, setMonto] = useState("");
+  const [tasa, setTasa] = useState("");
+  const [rol, setRol] = useState("");
+  const [comision, setComision] = useState("");
+  const [comisionFinantah, setComisionFinantah] = useState("");
+  const [pi, setPi] = useState("");
+  const [calificacion, setCalificacion] = useState("");
+  const [resultado, setResultado] = useState(null);
+  const [mensaje, setMensaje] = useState("");
+
+  const rentabilidadMinima = {
+    A: 0.08,
+    B: 0.09,
+    C: 0.1,
+    D: 0.11,
+  };
+
+  const formatterPeso = new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
   });
 
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const formatterMoney = new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN',
+  const formatterPorcentaje = new Intl.NumberFormat("es-MX", {
+    style: "percent",
     minimumFractionDigits: 2,
-  });
-
-  const formatterPercent = new Intl.NumberFormat('es-MX', {
-    style: 'percent',
-    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
 
-  const formatInputValue = (name, value) => {
-    const num = parseFloat(value.replace(/[^0-9.]/g, ''));
-    if (isNaN(num)) return '';
-    if (name === 'monto') return formatterMoney.format(num);
-    if (['tasa', 'comApertura', 'comFinantah', 'pi'].includes(name)) return `${num}%`;
-    return value;
+  const limpiarNumero = (valor) => {
+    return parseFloat(valor.toString().replace(/[$,%\s]/g, "").replace(",", ""));
   };
 
-  const parseRawValue = (value) => {
-    return value.replace(/[$,%\s]/g, '');
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const rawValue = parseRawValue(value);
-    if (!/^\d*\.?\d*$/.test(rawValue)) return;
-    setForm({
-      ...form,
-      [name]: rawValue,
-    });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setResult(null);
 
-    try {
-      const tasa = parseFloat(form.tasa);
-      const monto = parseFloat(form.monto);
-      const comApertura = parseFloat(form.comApertura);
-      const comFinantah = parseFloat(form.comFinantah);
-      const pi = parseFloat(form.pi);
-      const rol = form.rol;
-      const calificacion = form.calificacion;
+    const montoNum = limpiarNumero(monto);
+    const tasaNum = limpiarNumero(tasa) / 100;
+    const comisionNum = limpiarNumero(comision) / 100;
+    const comisionFinantahNum = limpiarNumero(comisionFinantah) / 100;
+    const piNum = limpiarNumero(pi) / 100;
 
-      if (tasa < 26 || tasa > 36) throw new Error('Tasa fuera del rango permitido (26% - 36%)');
-      if (comApertura < 1 || comApertura > 4) throw new Error('Comisión por apertura fuera del rango (1% - 4%)');
-      if (comFinantah < 50) throw new Error('FINANTAH debe quedarse al menos con el 50% de la comisión');
-
-      const costoFondeo = 0.1788;
-      const gastosOperativos = 0.045;
-      const interes = monto * (tasa / 100);
-      const margenFinanciero = interes - (monto * costoFondeo);
-      const comisionTotal = monto * (comApertura / 100);
-      const comisionFinantah = comisionTotal * (comFinantah / 100);
-      const comisionPromotor = comisionTotal - comisionFinantah;
-
-      const rolTasa = {
-        'Jr': 0.05,
-        'Sr': 0.08,
-        'Gerente': 0.10
-      };
-
-      const comInteresPromotor = margenFinanciero * rolTasa[rol];
-
-      const margenConComision = margenFinanciero + comisionFinantah;
-      const margenContribucion = margenConComision - comisionPromotor - comInteresPromotor;
-      const perdidaEsperada = (pi / 100) * 0.45 * monto;
-      const utilidadSinRiesgo = margenContribucion - perdidaEsperada;
-      const utilidad = utilidadSinRiesgo - (monto * gastosOperativos);
-
-      const minUtilidades = { A: 0.08, B: 0.09, C: 0.10, D: 0.11 };
-      const cumple = utilidad >= (minUtilidades[calificacion] * monto);
-
-      setResult(`
-📊 UTILIDAD DEL CRÉDITO: \n${formatterMoney.format(utilidad)}
-\n${cumple ? '✅ Cumple' : '❌ No cumple'} con la rentabilidad mínima esperada (${formatterPercent.format(minUtilidades[calificacion])})
-      `);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (tasaNum < 0.26 || tasaNum > 0.36) {
+      setResultado(null);
+      setMensaje("❌ La tasa debe estar entre 26% y 36%");
+      return;
     }
+
+    if (comisionNum < 0.01 || comisionNum > 0.04) {
+      setResultado(null);
+      setMensaje("❌ La comisión de apertura debe estar entre 1% y 4%");
+      return;
+    }
+
+    if (comisionFinantahNum < 0.5) {
+      setResultado(null);
+      setMensaje("❌ FINANTAH debe quedarse al menos con el 50% de la comisión");
+      return;
+    }
+
+    const interesCredito = montoNum * tasaNum;
+    const costoFinanciero = montoNum * 0.18;
+    const margenFinanciero = interesCredito - costoFinanciero;
+    const comisionAperturaFinantah = montoNum * comisionNum * comisionFinantahNum;
+    const comisionAperturaPromotor = montoNum * comisionNum * (1 - comisionFinantahNum);
+    const comisionInteresPromotor = rol === "Jr" ? 0 : montoNum * tasaNum * 0.1;
+    const margenContribucion =
+      margenFinanciero + comisionAperturaFinantah - comisionAperturaPromotor - comisionInteresPromotor;
+    const utilidadSinRiesgo = margenContribucion - piNum * 0.45 * montoNum;
+    const utilidad = utilidadSinRiesgo - 0.045 * montoNum;
+
+    setResultado(utilidad);
+    const rentabilidad = utilidad / montoNum;
+    const cumple = rentabilidad >= rentabilidadMinima[calificacion];
+    const simbolo = cumple ? "✅" : "❌";
+    const texto = cumple
+      ? `Cumple con la rentabilidad mínima esperada (${(rentabilidadMinima[calificacion] * 100).toFixed(2)}%)`
+      : `NO cumple con la rentabilidad mínima esperada (${(rentabilidadMinima[calificacion] * 100).toFixed(2)}%)`;
+
+    setMensaje(`${simbolo} ${texto}`);
   };
 
   return (
-    <div className="flex flex-col items-center mt-10 px-4">
-      <img src="/finantah-logo.png" alt="Logo FINANTAH" className="w-32 mb-4" />
-      <h1 className="text-3xl font-bold mb-6 text-center">Simulador de Utilidad - FINANTAH</h1>
+    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "40px 20px", textAlign: "center" }}>
+      <div style={{ marginBottom: "20px" }}>
+        <Image src="/logo-finantah.png" alt="FINANTAH Logo" width={120} height={120} />
+      </div>
+      <h1 style={{ fontSize: "28px", fontWeight: "bold" }}>Simulador de Utilidad - FINANTAH</h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-sm">
-        <input name="monto" value={formatInputValue('monto', form.monto)} onChange={handleChange} placeholder="Monto del crédito" required />
-        <input name="tasa" value={formatInputValue('tasa', form.tasa)} onChange={handleChange} placeholder="Tasa anual (%)" required />
-        <select name="rol" value={form.rol} onChange={handleChange} required>
-          <option value="">Tipo de promotor</option>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "24px" }}>
+        <input placeholder="Monto del crédito" value={monto} onChange={(e) => setMonto(e.target.value)} />
+        <input placeholder="Tasa (%)" value={tasa} onChange={(e) => setTasa(e.target.value)} />
+        <select value={rol} onChange={(e) => setRol(e.target.value)}>
+          <option value="">Selecciona Rol</option>
           <option value="Jr">Jr</option>
-          <option value="Sr">Sr</option>
           <option value="Gerente">Gerente</option>
         </select>
-        <input name="comApertura" value={formatInputValue('comApertura', form.comApertura)} onChange={handleChange} placeholder="Comisión por apertura (%)" required />
-        <input name="comFinantah" value={formatInputValue('comFinantah', form.comFinantah)} onChange={handleChange} placeholder="% que se queda FINANTAH" required />
-        <input name="pi" value={formatInputValue('pi', form.pi)} onChange={handleChange} placeholder="Probabilidad de Incumplimiento (P(i))" required />
-        <select name="calificacion" value={form.calificacion} onChange={handleChange} required>
+        <input placeholder="Comisión de apertura (%)" value={comision} onChange={(e) => setComision(e.target.value)} />
+        <input placeholder="% comisión que se queda FINANTAH" value={comisionFinantah} onChange={(e) => setComisionFinantah(e.target.value)} />
+        <input placeholder="P(i) (%)" value={pi} onChange={(e) => setPi(e.target.value)} />
+        <select value={calificacion} onChange={(e) => setCalificacion(e.target.value)}>
           <option value="">Calificación</option>
           <option value="A">A</option>
           <option value="B">B</option>
           <option value="C">C</option>
           <option value="D">D</option>
         </select>
-
-        <button type="submit" className="bg-blue-700 text-white py-2 rounded" disabled={loading}>
-          {loading ? 'Calculando...' : 'Simular'}
+        <button type="submit" style={{ background: "#1739B9", color: "white", padding: "10px", fontWeight: "bold", border: "none" }}>
+          Simular
         </button>
       </form>
 
-      {error && <p className="text-red-600 mt-4">{error}</p>}
-      {result && (
-        <div className="mt-6 bg-gray-100 p-4 rounded w-full max-w-sm">
-          <pre className="whitespace-pre-wrap text-sm">{result}</pre>
+      {resultado !== null && (
+        <div style={{ marginTop: "30px", backgroundColor: "#f4f4f4", padding: "20px", borderRadius: "12px" }}>
+          <h3 style={{ fontSize: "20px" }}>📊 UTILIDAD DEL CRÉDITO:</h3>
+          <p style={{ fontSize: "20px", fontWeight: "bold" }}>{formatterPeso.format(resultado)}</p>
+          <p style={{ fontSize: "16px" }}>{mensaje}</p>
         </div>
       )}
     </div>
